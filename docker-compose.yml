@@ -1,7 +1,7 @@
 version: "3"
 services:
   signal-cli-rest-api:
-    build: "."
+    image: "mmhk/signal-cli-rest-api:latest"
     environment:
       - PORT=8080
     ports:
