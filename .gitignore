@@ -1,3 +1,5 @@
 signal-cli-config
 src/main
+src/vendor
 src/signal-cli-rest-api
+.idea

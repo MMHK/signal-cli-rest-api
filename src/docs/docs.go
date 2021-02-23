@@ -19,7 +19,6 @@ var doc = `{
         "description": "{{.Description}}",
         "title": "{{.Title}}",
         "contact": {},
-        "license": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -521,7 +520,7 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Receive timeout in seconds (default: 1)",
+                        "description": "Receive timeout in seconds (default: 10)",
                         "name": "timeout",
                         "in": "query"
                     }
@@ -568,7 +567,9 @@ var doc = `{
                     }
                 ],
                 "responses": {
-                    "201": {},
+                    "201": {
+                        "description": ""
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -733,7 +734,6 @@ var doc = `{
             "type": "object",
             "properties": {
                 "logging": {
-                    "type": "object",
                     "$ref": "#/definitions/api.LoggingConfiguration"
                 }
             }
@@ -896,7 +896,7 @@ var doc = `{
     },
     "tags": [
         {
-            "description": "List general information.",
+            "description": "Some general endpoints.",
             "name": "General"
         },
         {

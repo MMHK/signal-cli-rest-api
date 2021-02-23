@@ -13,7 +13,6 @@ definitions:
     properties:
       logging:
         $ref: '#/definitions/api.LoggingConfiguration'
-        type: object
     type: object
   api.CreateGroup:
     properties:
@@ -119,7 +118,6 @@ host: 127.0.0.1:8080
 info:
   contact: {}
   description: This is the Signal Cli REST API documentation.
-  license: {}
   title: Signal Cli REST API
   version: "1.0"
 paths:
@@ -480,7 +478,8 @@ paths:
       produces:
       - application/json
       responses:
-        "201": {}
+        "201":
+          description: ""
         "400":
           description: Bad Request
           schema:
@@ -579,7 +578,7 @@ paths:
       - Messages
 swagger: "2.0"
 tags:
-- description: List general information.
+- description: Some general endpoints.
   name: General
 - description: Register and link Devices.
   name: Devices

@@ -4,7 +4,6 @@
         "description": "This is the Signal Cli REST API documentation.",
         "title": "Signal Cli REST API",
         "contact": {},
-        "license": {},
         "version": "1.0"
     },
     "host": "127.0.0.1:8080",
@@ -553,7 +552,9 @@
                     }
                 ],
                 "responses": {
-                    "201": {},
+                    "201": {
+                        "description": ""
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -718,7 +719,6 @@
             "type": "object",
             "properties": {
                 "logging": {
-                    "type": "object",
                     "$ref": "#/definitions/api.LoggingConfiguration"
                 }
             }
@@ -881,7 +881,7 @@
     },
     "tags": [
         {
-            "description": "List general information.",
+            "description": "Some general endpoints.",
             "name": "General"
         },
         {

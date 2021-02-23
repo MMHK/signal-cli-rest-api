@@ -316,6 +316,7 @@ func runSignalCli(wait bool, args []string, stdin string) (string, error) {
 	if stdin != "" {
 		cmd.Stdin = strings.NewReader(stdin)
 	}
+	log.Debugf("%v", cmd)
 	if wait {
 		var errBuffer bytes.Buffer
 		var outBuffer bytes.Buffer
@@ -324,6 +325,7 @@ func runSignalCli(wait bool, args []string, stdin string) (string, error) {
 
 		err := cmd.Start()
 		if err != nil {
+			log.Error(err)
 			return "", err
 		}
 
@@ -335,11 +337,13 @@ func runSignalCli(wait bool, args []string, stdin string) (string, error) {
 		case <-time.After(60 * time.Second):
 			err := cmd.Process.Kill()
 			if err != nil {
+				log.Error(err)
 				return "", err
 			}
 			return "", errors.New("process killed as timeout reached")
 		case err := <-done:
 			if err != nil {
+				log.Error(errBuffer.String())
 				return "", errors.New(errBuffer.String())
 			}
 		}
@@ -348,11 +352,13 @@ func runSignalCli(wait bool, args []string, stdin string) (string, error) {
 	} else {
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
+			log.Error(err)
 			return "", err
 		}
 		cmd.Start()
 		buf := bufio.NewReader(stdout) // Notice that this is not in a loop
 		line, _, _ := buf.ReadLine()
+		log.Debug(string(line))
 		return string(line), nil
 	}
 }
@@ -575,14 +581,14 @@ func (a *Api) SendV2(c *gin.Context) {
 // @Success 200 {object} []string
 // @Failure 400 {object} Error
 // @Param number path string true "Registered Phone Number"
-// @Param timeout query string false "Receive timeout in seconds (default: 1)"
+// @Param timeout query string false "Receive timeout in seconds (default: 10)"
 // @Router /v1/receive/{number} [get]
 func (a *Api) Receive(c *gin.Context) {
 	number := c.Param("number")
 
-	timeout := c.DefaultQuery("timeout", "1")
+	timeout := c.DefaultQuery("timeout", "10")
 
-	command := []string{"--config", a.signalCliConfig, "-u", number, "receive", "-t", timeout, "--json"}
+	command := []string{"--config", a.signalCliConfig, "-u", number, "--output=json", "receive", "-t", timeout}
 	out, err := runSignalCli(true, command, "")
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})

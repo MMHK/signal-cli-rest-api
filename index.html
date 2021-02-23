@@ -9,6 +9,20 @@
         <div id="swagger-ui"></div> <!-- Div to hold the UI component -->
         <script>
             window.onload = function () {
+                // Custom plugin that adds extra stuff
+                const formatInfoPathPlugin = function() {
+                    return {
+                        wrapComponents: {
+                            // add text above InfoContainer - same effect as above title
+                            InfoBasePath: (Original, runtime) => (props) => {
+                                var React = runtime.React;
+                                props.host = location.host;
+
+                                return React.createElement(Original, props);
+                            },
+                        }
+                    }
+                };
                 // Begin Swagger UI call region
                 const ui = SwaggerUIBundle({
                     url: "src/docs/swagger.json", //Location of Open API spec in the repo
@@ -19,6 +33,7 @@
                         SwaggerUIBundle.SwaggerUIStandalonePreset
                     ],
                     plugins: [
+                        formatInfoPathPlugin,
                         SwaggerUIBundle.plugins.DownloadUrl
                     ],
                 })
