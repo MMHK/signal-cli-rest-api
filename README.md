@@ -1,5 +1,7 @@
 # Dockerized Signal Messenger REST API
 
+[![dockeri.co](https://dockeri.co/image/mmhk/signal-cli-rest-api)](https://hub.docker.com/r/mmhk/signal-cli-rest-api)
+
 This project creates a small dockerized REST API around [signal-cli](https://github.com/AsamK/signal-cli).
 
 At the moment, the following functionality is exposed via REST:
