@@ -34,3 +34,11 @@ services:
 The Swagger API documentation can be found [here](https://bbernhard.github.io/signal-cli-rest-api/). If you prefer a simple text file like API documentation have a look [here](https://github.com/bbernhard/signal-cli-rest-api/blob/master/doc/EXAMPLES.md)
 
 In case you need more functionality, please **file a ticket** or **create a PR**.
+
+### 使用帮助
+
+- 进入项目目录
+- 执行 `docker-composer up -d`
+- 打开 http://127.0.0.0:8080/swagger/index.html
+- 执行 `/v1/qrcodelink`， 设置一个设备名称。生成二维码，使用Signal APP 绑定设备
+- 执行 `/v1/receive/{number}` , `timeout` 设置 10 （秒）, 接收所有的上行消息
