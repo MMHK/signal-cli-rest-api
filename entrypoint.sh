@@ -19,7 +19,7 @@ cap_prefix="-cap_"
 caps="$cap_prefix$(seq -s ",$cap_prefix" 0 $(cat /proc/sys/kernel/cap_last_cap))"
 
 # start system dbus
-rm -rf /var/run/dbus/dbus.pid
+rm -rf /var/run/dbus/pid
 dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
 # Start API as signal-api user
