@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"os"
-
+	"path/filepath"
+	
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
@@ -46,6 +47,7 @@ func main() {
 	signalCliConfig := flag.String("signal-cli-config", "/home/.local/share/signal-cli/", "Config directory where signal-cli config is stored")
 	attachmentTmpDir := flag.String("attachment-tmp-dir", "/tmp/", "Attachment tmp directory")
 	avatarTmpDir := flag.String("avatar-tmp-dir", "/tmp/", "Avatar tmp directory")
+	uiDir := flag.String("web-ui-dir", filepath.Dir(os.Args[0]), "Web UI Root")
 	flag.Parse()
 
 	router := gin.New()
@@ -132,9 +134,11 @@ func main() {
 		}
 	}
 
-	swaggerPort := getEnv("PORT", "8080")
-
-	swaggerUrl := ginSwagger.URL("http://127.0.0.1:" + string(swaggerPort) + "/swagger/doc.json")
+	swaggerUrl := ginSwagger.URL("/swagger/doc.json")
+	webrootPath, err := filepath.Abs(*uiDir);
+	if err == nil {
+		router.Static("/ui", webrootPath)
+	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerUrl))
 
 	router.Run()

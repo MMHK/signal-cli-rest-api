@@ -90,10 +90,14 @@ RUN tar xf /tmp/signal-cli-${SIGNAL_CLI_VERSION}.tar -C /opt
 RUN rm -rf /tmp/signal-cli-${SIGNAL_CLI_VERSION}
 
 RUN groupadd -g 1000 signal-api \
+    && mkdir /app/signal-cli-rest-api \
 	&& useradd --no-log-init -M -d /home -s /bin/bash -u 1000 -g 1000 signal-api \
 	&& ln -s /opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli /usr/bin/signal-cli \
 	&& mkdir -p /signal-cli-config/ \
 	&& mkdir -p /home/.local/share/signal-cli
+
+WORKDIR /app/signal-cli-rest-api
+COPY webroot /app/signal-cli-rest-api/webroot
 
 EXPOSE ${PORT}
 

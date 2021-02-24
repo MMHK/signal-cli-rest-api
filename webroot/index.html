@@ -1,0 +1,50 @@
+<html>
+<head>
+    <!-- Load the latest Swagger UI code and style from npm using unpkg.com -->
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css"/>
+    <title>signal-cli-rest-api API documentation</title>
+</head>
+<body>
+<div id="swagger-ui"></div> <!-- Div to hold the UI component -->
+<script>
+    window.onload = function () {
+        // Custom plugin that adds extra stuff
+        const formatInfoPathPlugin = function() {
+            return {
+                wrapComponents: {
+                    // add text above InfoContainer - same effect as above title
+                    InfoBasePath: (Original, runtime) => (props) => {
+                        var React = runtime.React;
+                        props.host = location.host;
+
+                        return React.createElement(Original, props);
+                    },
+                }
+            }
+        };
+        // Begin Swagger UI call region
+        const ui = SwaggerUIBundle({
+            url: "/swagger/doc.json", //Location of Open API spec in the repo
+            requestInterceptor: function (request) {
+                // Replace the default host by the correct one.
+                // DO NOT CHANGE here without changing application.conf
+                request.url = request.url.replace("127.0.0.1:8080", location.host);
+                return request;
+            },
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset
+            ],
+            plugins: [
+                formatInfoPathPlugin,
+                SwaggerUIBundle.plugins.DownloadUrl
+            ],
+        })
+        window.ui = ui
+    }
+</script>
+</body>
+</html>
