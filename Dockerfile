@@ -88,20 +88,19 @@ COPY entrypoint.sh /entrypoint.sh
 
 RUN tar xf /tmp/signal-cli-${SIGNAL_CLI_VERSION}.tar -C /opt \
     && rm -rf /tmp/signal-cli-${SIGNAL_CLI_VERSION} \
+    && mkdir -p /app/signal-cli-rest-api \
     && groupadd -g 1000 signal-api \
-    && mkdir /app/signal-cli-rest-api \
     && useradd --no-log-init -M -d /home -s /bin/bash -u 1000 -g 1000 signal-api \
     && ln -s /opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli /usr/bin/signal-cli \
     && mkdir -p /signal-cli-config/ \
     && mkdir -p /home/.local/share/signal-cli \
     && apt-get update \
     && apt-get install -y --no-install-recommends dbus \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/run/dbus \
+    && dbus-uuidgen > /var/lib/dbus/machine-id
 
 COPY data/org.asamk.Signal.conf /etc/dbus-1/system.d/
-
-RUN dbus-uuidgen > /var/lib/dbus/machine-id \
-    && dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
 
 WORKDIR /app/signal-cli-rest-api
 COPY webroot /app/signal-cli-rest-api/webroot
