@@ -1,4 +1,4 @@
-module github.com/bbernhard/signal-cli-rest-api
+module signal-cli-rest-api
 
 go 1.14
 

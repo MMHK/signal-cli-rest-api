@@ -14,14 +14,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	
 	"github.com/cyphar/filepath-securejoin"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
-	uuid "github.com/gofrs/uuid"
+	"github.com/gofrs/uuid"
 	"github.com/h2non/filetype"
 	log "github.com/sirupsen/logrus"
-	qrcode "github.com/skip2/go-qrcode"
+	"github.com/skip2/go-qrcode"
 )
 
 const signalCliV2GroupError = "Cannot create a V2 group as self does not have a versioned profile"
@@ -367,6 +367,7 @@ type Api struct {
 	signalCliConfig  string
 	attachmentTmpDir string
 	avatarTmpDir     string
+	daemon           *exec.Cmd
 }
 
 func NewApi(signalCliConfig string, attachmentTmpDir string, avatarTmpDir string) *Api {
@@ -1100,3 +1101,4 @@ func (a *Api) GetConfiguration(c *gin.Context) {
 	configuration := Configuration{Logging: LoggingConfiguration{Level: logLevel}}
 	c.JSON(200, configuration)
 }
+

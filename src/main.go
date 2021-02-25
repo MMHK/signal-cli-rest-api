@@ -9,8 +9,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/bbernhard/signal-cli-rest-api/api"
-	_ "github.com/bbernhard/signal-cli-rest-api/docs"
+	"signal-cli-rest-api/api"
+	_ "signal-cli-rest-api/docs"
 
 )
 
