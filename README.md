@@ -41,4 +41,5 @@ In case you need more functionality, please **file a ticket** or **create a PR**
 - 执行 `docker-compose up -d`
 - 打开 http://127.0.0.1:8080/ui/index.html
 - 执行 `/v1/qrcodelink`， 设置一个设备名称。生成二维码，使用Signal APP 绑定设备
-- 执行 `/v1/receive/{number}` , `timeout` 设置 10 （秒）, 接收所有的上行消息
+- ~执行 `/v1/receive/{number}` , `timeout` 设置 10 （秒）, 接收所有的上行消息~
+- 使用新增的 `webhook` 系列接口，添加callback url，接收上行信息。
