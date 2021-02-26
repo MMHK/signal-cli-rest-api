@@ -148,13 +148,13 @@ func (a *DBusApi) StopDaemon() error {
 }
 
 func (a *DBusApi) FetchWebHook(raw *bytes.Buffer) {
-	httpClient := http.Client{
-		Timeout: time.Second * 30,
-	}
 	
 	for _, url := range a.webhookList {
 		buf := bytes.NewBuffer(raw.Bytes())
 		go func(url string, raw *bytes.Buffer) {
+			httpClient := http.Client{
+				Timeout: time.Second * 30,
+			}
 			_, err := httpClient.Post(url, "application/json", raw)
 			if err != nil {
 				log.Error(err)
