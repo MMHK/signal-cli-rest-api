@@ -13,6 +13,7 @@ definitions:
     properties:
       logging:
         $ref: '#/definitions/api.LoggingConfiguration'
+        type: object
     type: object
   api.CreateGroup:
     properties:
@@ -22,44 +23,6 @@ definitions:
   api.Error:
     properties:
       error:
-        type: string
-    type: object
-  api.GroupEntry:
-    properties:
-      blocked:
-        type: boolean
-      id:
-        type: string
-      internal_id:
-        type: string
-      invite_link:
-        type: string
-      members:
-        items:
-          type: string
-        type: array
-      name:
-        type: string
-      pending_invites:
-        items:
-          type: string
-        type: array
-      pending_requests:
-        items:
-          type: string
-        type: array
-    type: object
-  api.IdentityEntry:
-    properties:
-      added:
-        type: string
-      fingerprint:
-        type: string
-      number:
-        type: string
-      safety_number:
-        type: string
-      status:
         type: string
     type: object
   api.LoggingConfiguration:
@@ -97,6 +60,15 @@ definitions:
           type: string
         type: array
     type: object
+  api.ServiceResult:
+    properties:
+      data:
+        type: object
+      error:
+        type: error
+      status:
+        type: boolean
+    type: object
   api.TrustIdentityRequest:
     properties:
       verified_safety_number:
@@ -114,10 +86,16 @@ definitions:
       pin:
         type: string
     type: object
+  api.WebHookRequest:
+    properties:
+      url:
+        type: string
+    type: object
 host: 127.0.0.1:8080
 info:
   contact: {}
   description: This is the Signal Cli REST API documentation.
+  license: {}
   title: Signal Cli REST API
   version: "1.0"
 paths:
@@ -143,13 +121,21 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              type: string
-            type: array
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: List all attachments.
       tags:
       - Attachments
@@ -165,14 +151,24 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           schema:
-            type: string
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Remove attachment.
       tags:
       - Attachments
@@ -190,11 +186,21 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Serve Attachment.
       tags:
       - Attachments
@@ -209,11 +215,21 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.Configuration'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: List the REST API configuration.
       tags:
       - General
@@ -231,14 +247,24 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Set the REST API configuration.
       tags:
       - General
@@ -259,13 +285,21 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/api.GroupEntry'
-            type: array
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: List all Signal Groups.
       tags:
       - Groups
@@ -315,11 +349,21 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Delete a Signal Group.
       tags:
       - Groups
@@ -351,9 +395,21 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/api.IdentityEntry'
-            type: array
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: List Identities
       tags:
       - Identities
@@ -380,10 +436,24 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Trust Identity
       tags:
       - Identities
@@ -405,14 +475,24 @@ paths:
       produces:
       - application/json
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
           schema:
-            type: string
-        "400":
-          description: Bad Request
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Update Profile.
       tags:
       - Profiles
@@ -426,10 +506,15 @@ paths:
           description: Image
           schema:
             type: string
-        "400":
-          description: Bad Request
+        "500":
+          description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
       summary: Link device and generate QR code.
       tags:
       - Devices
@@ -444,7 +529,7 @@ paths:
         name: number
         required: true
         type: string
-      - description: 'Receive timeout in seconds (default: 1)'
+      - description: 'Receive timeout in seconds (default: 10)'
         in: query
         name: timeout
         type: string
@@ -565,17 +650,119 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: OK
           schema:
-            type: string
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Send a signal message.
+      tags:
+      - Messages
+  /v3/webhook:
+    get:
+      consumes:
+      - application/json
+      description: List all Receive Signal Messages callback URL.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/api.Error'
-      summary: Send a signal message.
+      summary: List all Receive Signal Messages callback URL.
       tags:
-      - Messages
+      - WebHook
+    post:
+      consumes:
+      - application/json
+      description: Add a Receive Signal Messages callback URL.
+      parameters:
+      - description: WebHookRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.WebHookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Add a Receive Signal Messages callback URL.
+      tags:
+      - WebHook
+  /v3/webhook/remove:
+    post:
+      consumes:
+      - application/json
+      description: Add a Receive Signal Messages callback URL.
+      parameters:
+      - description: WebHookRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.WebHookRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.ServiceResult'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Add a Receive Signal Messages callback URL.
+      tags:
+      - WebHook
 swagger: "2.0"
 tags:
 - description: Some general endpoints.

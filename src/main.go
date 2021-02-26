@@ -59,70 +59,70 @@ func main() {
 
 	log.Info("Started Signal Messenger REST API")
 
-	api := api.NewApi(*signalCliConfig, *attachmentTmpDir, *avatarTmpDir)
+	apiInstance := api.NewDBusApi(*signalCliConfig, *attachmentTmpDir, *avatarTmpDir)
 	v1 := router.Group("/v1")
 	{
 		about := v1.Group("/about")
 		{
-			about.GET("", api.About)
+			about.GET("", apiInstance.About)
 		}
 
 		configuration := v1.Group("/configuration")
 		{
-			configuration.GET("", api.GetConfiguration)
-			configuration.POST("", api.SetConfiguration)
+			configuration.GET("", apiInstance.GetConfiguration)
+			configuration.POST("", apiInstance.SetConfiguration)
 		}
 
 		health := v1.Group("/health")
 		{
-			health.GET("", api.Health)
+			health.GET("", apiInstance.Health)
 		}
 
 		register := v1.Group("/register")
 		{
-			register.POST(":number", api.RegisterNumber)
-			register.POST(":number/verify/:token", api.VerifyRegisteredNumber)
+			register.POST(":number", apiInstance.RegisterNumber)
+			register.POST(":number/verify/:token", apiInstance.VerifyRegisteredNumber)
 		}
 
 		sendV1 := v1.Group("/send")
 		{
-			sendV1.POST("", api.Send)
+			sendV1.POST("", apiInstance.Send)
 		}
 
 		receive := v1.Group("/receive")
 		{
-			receive.GET(":number", api.Receive)
+			receive.GET(":number", apiInstance.Receive)
 		}
 
 		groups := v1.Group("/groups")
 		{
-			groups.POST(":number", api.CreateGroup)
-			groups.GET(":number", api.GetGroups)
-			groups.GET(":number/:groupid", api.GetGroup)
-			groups.DELETE(":number/:groupid", api.DeleteGroup)
+			groups.POST(":number", apiInstance.CreateGroup)
+			groups.GET(":number", apiInstance.GetGroups)
+			groups.GET(":number/:groupid", apiInstance.GetGroup)
+			groups.DELETE(":number/:groupid", apiInstance.DeleteGroup)
 		}
 
 		link := v1.Group("qrcodelink")
 		{
-			link.GET("", api.GetQrCodeLink)
+			link.GET("", apiInstance.GetQrCodeLink)
 		}
 
 		attachments := v1.Group("attachments")
 		{
-			attachments.GET("", api.GetAttachments)
-			attachments.DELETE(":attachment", api.RemoveAttachment)
-			attachments.GET(":attachment", api.ServeAttachment)
+			attachments.GET("", apiInstance.GetAttachments)
+			attachments.DELETE(":attachment", apiInstance.RemoveAttachment)
+			attachments.GET(":attachment", apiInstance.ServeAttachment)
 		}
 
 		profiles := v1.Group("profiles")
 		{
-			profiles.PUT(":number", api.UpdateProfile)
+			profiles.PUT(":number", apiInstance.UpdateProfile)
 		}
 
 		identities := v1.Group("identities")
 		{
-			identities.GET(":number", api.ListIdentities)
-			identities.PUT(":number/trust/:numbertotrust", api.TrustIdentity)
+			identities.GET(":number", apiInstance.ListIdentities)
+			identities.PUT(":number/trust/:numbertotrust", apiInstance.TrustIdentity)
 		}
 	}
 
@@ -130,7 +130,17 @@ func main() {
 	{
 		sendV2 := v2.Group("/send")
 		{
-			sendV2.POST("", api.SendV2)
+			sendV2.POST("", apiInstance.SendV2)
+		}
+	}
+	
+	v3 := router.Group("/v3")
+	{
+		webhookGroup := v3.Group("/webhook")
+		{
+			webhookGroup.GET("", apiInstance.ApiListWebhook)
+			webhookGroup.POST("", apiInstance.ApiAddWebhook)
+			webhookGroup.POST("/remove", apiInstance.ApiRemoveWebhook)
 		}
 	}
 
@@ -141,6 +151,13 @@ func main() {
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerUrl))
 
+	go func() {
+		err := apiInstance.Daemon()
+		if err != nil {
+			panic("daemon is down")
+		}
+	}()
+	
 	router.Run()
 }
 

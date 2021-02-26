@@ -387,7 +387,10 @@ func NewApi(signalCliConfig string, attachmentTmpDir string, avatarTmpDir string
 func (a *Api) About(c *gin.Context) {
 
 	about := About{SupportedApiVersions: []string{"v1", "v2"}, BuildNr: 2}
-	c.JSON(200, about)
+	c.JSON(200, ServiceResult{
+		Status: true,
+		Data: about,
+	})
 }
 
 // @Summary Register a phone number.
@@ -658,8 +661,8 @@ func (a *Api) CreateGroup(c *gin.Context) {
 // @Description List all Signal Groups.
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} []GroupEntry
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param number path string true "Registered Phone Number"
 // @Router /v1/groups/{number} [get]
 func (a *Api) GetGroups(c *gin.Context) {
@@ -667,11 +670,17 @@ func (a *Api) GetGroups(c *gin.Context) {
 
 	groups, err := getGroups(number, a.signalCliConfig)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
-	c.JSON(200, groups)
+	c.JSON(200, ServiceResult{
+		Status: true,
+		Data: groups,
+	})
 }
 
 func (a *Api) GetGroup(c *gin.Context) {
@@ -699,8 +708,8 @@ func (a *Api) GetGroup(c *gin.Context) {
 // @Description Delete a Signal Group.
 // @Accept  json
 // @Produce  json
-// @Success 200 {string} string "OK"
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param number path string true "Registered Phone Number"
 // @Param groupid path string true "Group Id"
 // @Router /v1/groups/{number}/{groupid} [delete]
@@ -709,21 +718,33 @@ func (a *Api) DeleteGroup(c *gin.Context) {
 	number := c.Param("number")
 
 	if base64EncodedGroupId == "" {
-		c.JSON(400, gin.H{"error": "Please specify a group id"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Please specify a group id"),
+		})
 		return
 	}
 
 	groupId, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(base64EncodedGroupId, groupPrefix))
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid group id"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Invalid group id"),
+		})
 		return
 	}
 
 	_, err = runSignalCli(true, []string{"--config", a.signalCliConfig, "-u", number, "quitGroup", "-g", string(groupId)}, "")
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary Link device and generate QR code.
@@ -731,13 +752,16 @@ func (a *Api) DeleteGroup(c *gin.Context) {
 // @Description Link device and generate QR code
 // @Produce  json
 // @Success 200 {string} string	"Image"
-// @Failure 400 {object} Error
+// @Failure 500 {object} ServiceResult{data=string}
 // @Router /v1/qrcodelink [get]
 func (a *Api) GetQrCodeLink(c *gin.Context) {
 	deviceName := c.Query("device_name")
 
 	if deviceName == "" {
-		c.JSON(400, gin.H{"error": "Please provide a name for the device"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Please provide a name for the device"),
+		})
 		return
 	}
 
@@ -746,14 +770,20 @@ func (a *Api) GetQrCodeLink(c *gin.Context) {
 	tsdeviceLink, err := runSignalCli(false, command, "")
 	if err != nil {
 		log.Error("Couldn't create QR code: ", err.Error())
-		c.JSON(400, Error{Msg: "Couldn't create QR code: " + err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
 	q, err := qrcode.New(string(tsdeviceLink), qrcode.Medium)
 	if err != nil {
 		log.Error("Couldn't create QR code: ", err.Error())
-		c.JSON(400, Error{Msg: "Couldn't create QR code: " + err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
@@ -762,7 +792,10 @@ func (a *Api) GetQrCodeLink(c *gin.Context) {
 	png, err = q.PNG(256)
 	if err != nil {
 		log.Error("Couldn't create QR code: ", err.Error())
-		c.JSON(400, Error{Msg: "Couldn't create QR code: " + err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
@@ -773,8 +806,8 @@ func (a *Api) GetQrCodeLink(c *gin.Context) {
 // @Tags Attachments
 // @Description List all downloaded attachments
 // @Produce  json
-// @Success 200 {object} []string
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Router /v1/attachments [get]
 func (a *Api) GetAttachments(c *gin.Context) {
 	files := []string{}
@@ -787,71 +820,100 @@ func (a *Api) GetAttachments(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.JSON(500, Error{Msg: "Couldn't get list of attachments: " + err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
-	c.JSON(200, files)
+	c.JSON(200, ServiceResult{
+		Status: true,
+		Data: files,
+	})
 }
 
 // @Summary Remove attachment.
 // @Tags Attachments
 // @Description Remove the attachment with the given id from filesystem.
 // @Produce  json
-// @Success 204 {string} OK
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param attachment path string true "Attachment ID"
 // @Router /v1/attachments/{attachment} [delete]
 func (a *Api) RemoveAttachment(c *gin.Context) {
 	attachment := c.Param("attachment")
 	path, err := securejoin.SecureJoin(a.signalCliConfig+"/attachments/", attachment)
 	if err != nil {
-		c.JSON(400, Error{Msg: "Please provide a valid attachment name"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Please provide a valid attachment name"),
+		})
 		return
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		c.JSON(404, Error{Msg: "No attachment with that name found"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("No attachment with that name found"),
+		})
 		return
 	}
 	err = os.Remove(path)
 	if err != nil {
-		c.JSON(500, Error{Msg: "Couldn't delete attachment - please try again later"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't delete attachment - please try again later"),
+		})
 		return
 	}
-	c.Status(http.StatusNoContent)
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary Serve Attachment.
 // @Tags Attachments
 // @Description Serve the attachment with the given id
 // @Produce  json
-// @Success 200 {string} OK
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param attachment path string true "Attachment ID"
 // @Router /v1/attachments/{attachment} [get]
 func (a *Api) ServeAttachment(c *gin.Context) {
 	attachment := c.Param("attachment")
 	path, err := securejoin.SecureJoin(a.signalCliConfig+"/attachments/", attachment)
 	if err != nil {
-		c.JSON(400, Error{Msg: "Please provide a valid attachment name"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Please provide a valid attachment name"),
+		})
 		return
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		c.JSON(404, Error{Msg: "No attachment with that name found"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("No attachment with that name found"),
+		})
 		return
 	}
 
 	imgBytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		c.JSON(500, Error{Msg: "Couldn't read attachment - please try again later"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't read attachment - please try again later"),
+		})
 		return
 	}
 
 	mime, err := mimetype.DetectReader(bytes.NewReader(imgBytes))
 	if err != nil {
-		c.JSON(500, Error{Msg: "Couldn't detect MIME type for attachment"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't detect MIME type for attachment"),
+		})
 		return
 	}
 
@@ -859,17 +921,24 @@ func (a *Api) ServeAttachment(c *gin.Context) {
 	c.Writer.Header().Set("Content-Length", strconv.Itoa(len(imgBytes)))
 	_, err = c.Writer.Write(imgBytes)
 	if err != nil {
-		c.JSON(500, Error{Msg: "Couldn't serve attachment - please try again later"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't serve attachment - please try again later"),
+		})
 		return
 	}
+	
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary Update Profile.
 // @Tags Profiles
 // @Description Set your name and optional an avatar.
 // @Produce  json
-// @Success 204 {string} OK
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param data body UpdateProfileRequest true "Profile Data"
 // @Param number path string true "Registered Phone Number"
 // @Router /v1/profiles/{number} [put]
@@ -877,20 +946,29 @@ func (a *Api) UpdateProfile(c *gin.Context) {
 	number := c.Param("number")
 
 	if number == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - number missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - number missing"),
+		})
 		return
 	}
 
 	var req UpdateProfileRequest
 	err := c.BindJSON(&req)
 	if err != nil {
-		c.JSON(400, Error{Msg: "Couldn't process request - invalid request"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		log.Error(err.Error())
 		return
 	}
 
 	if req.Name == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - profile name missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - profile name missing"),
+		})
 		return
 	}
 	cmd := []string{"--config", a.signalCliConfig, "-u", number, "updateProfile", "--name", req.Name}
@@ -901,19 +979,28 @@ func (a *Api) UpdateProfile(c *gin.Context) {
 	} else {
 		u, err := uuid.NewV4()
 		if err != nil {
-			c.JSON(400, Error{Msg: err.Error()})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: err,
+			})
 			return
 		}
 
 		avatarBytes, err := base64.StdEncoding.DecodeString(req.Base64Avatar)
 		if err != nil {
-			c.JSON(400, Error{Msg: "Couldn't decode base64 encoded avatar"})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: errors.New("Couldn't decode base64 encoded avatar"),
+			})
 			return
 		}
 
 		fType, err := filetype.Get(avatarBytes)
 		if err != nil {
-			c.JSON(400, Error{Msg: err.Error()})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: err,
+			})
 			return
 		}
 
@@ -921,19 +1008,28 @@ func (a *Api) UpdateProfile(c *gin.Context) {
 
 		f, err := os.Create(avatarTmpPath)
 		if err != nil {
-			c.JSON(400, Error{Msg: err.Error()})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: err,
+			})
 			return
 		}
 		defer f.Close()
 
 		if _, err := f.Write(avatarBytes); err != nil {
 			cleanupTmpFiles(avatarTmpPaths)
-			c.JSON(400, Error{Msg: err.Error()})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: err,
+			})
 			return
 		}
 		if err := f.Sync(); err != nil {
 			cleanupTmpFiles(avatarTmpPaths)
-			c.JSON(400, Error{Msg: err.Error()})
+			c.JSON(500, ServiceResult{
+				Status: false,
+				Error: err,
+			})
 			return
 		}
 		f.Close()
@@ -945,12 +1041,17 @@ func (a *Api) UpdateProfile(c *gin.Context) {
 	_, err = runSignalCli(true, cmd, "")
 	if err != nil {
 		cleanupTmpFiles(avatarTmpPaths)
-		c.JSON(400, Error{Msg: err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
 	cleanupTmpFiles(avatarTmpPaths)
-	c.Status(http.StatusNoContent)
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary API Health Check
@@ -967,20 +1068,27 @@ func (a *Api) Health(c *gin.Context) {
 // @Tags Identities
 // @Description List all identities for the given number.
 // @Produce  json
-// @Success 200 {object} []IdentityEntry
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param number path string true "Registered Phone Number"
 // @Router /v1/identities/{number} [get]
 func (a *Api) ListIdentities(c *gin.Context) {
 	number := c.Param("number")
 
 	if number == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - number missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - number missing"),
+		})
 		return
 	}
 
 	out, err := runSignalCli(true, []string{"--config", a.signalCliConfig, "-u", number, "listIdentities"}, "")
 	if err != nil {
-		c.JSON(500, Error{Msg: err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
 
@@ -999,14 +1107,18 @@ func (a *Api) ListIdentities(c *gin.Context) {
 		identityEntries = append(identityEntries, identityEntry)
 	}
 
-	c.JSON(200, identityEntries)
+	c.JSON(200, ServiceResult{
+		Status: true,
+		Data: identityEntries,
+	})
 }
 
 // @Summary Trust Identity
 // @Tags Identities
 // @Description Trust an identity.
 // @Produce  json
-// @Success 204 {string} OK
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 500 {object} ServiceResult{data=string}
 // @Param data body TrustIdentityRequest true "Input Data"
 // @Param number path string true "Registered Phone Number"
 // @Param numberToTrust path string true "Number To Trust"
@@ -1015,36 +1127,53 @@ func (a *Api) TrustIdentity(c *gin.Context) {
 	number := c.Param("number")
 
 	if number == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - number missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - number missing"),
+		})
 		return
 	}
 
 	numberToTrust := c.Param("numbertotrust")
 	if numberToTrust == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - number to trust missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - number to trust missing"),
+		})
 		return
 	}
 
 	var req TrustIdentityRequest
 	err := c.BindJSON(&req)
 	if err != nil {
-		c.JSON(400, Error{Msg: "Couldn't process request - invalid request"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - invalid request"),
+		})
 		log.Error(err.Error())
 		return
 	}
 
 	if req.VerifiedSafetyNumber == "" {
-		c.JSON(400, Error{Msg: "Couldn't process request - verified safety number missing"})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - verified safety number missing"),
+		})
 		return
 	}
 
 	cmd := []string{"--config", a.signalCliConfig, "-u", number, "trust", numberToTrust, "--verified-safety-number", req.VerifiedSafetyNumber}
 	_, err = runSignalCli(true, cmd, "")
 	if err != nil {
-		c.JSON(400, Error{Msg: err.Error()})
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: err,
+		})
 		return
 	}
-	c.Status(http.StatusNoContent)
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary Set the REST API configuration.
@@ -1052,15 +1181,18 @@ func (a *Api) TrustIdentity(c *gin.Context) {
 // @Description Set the REST API configuration.
 // @Accept  json
 // @Produce  json
-// @Success 201 {string} string "OK"
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 400 {object} ServiceResult{data=string}
 // @Param data body Configuration true "Configuration"
 // @Router /v1/configuration [post]
 func (a *Api) SetConfiguration(c *gin.Context) {
 	var req Configuration
 	err := c.BindJSON(&req)
 	if err != nil {
-		c.JSON(400, Error{Msg: "Couldn't process request - invalid request"})
+		c.JSON(400, ServiceResult{
+			Status: false,
+			Error: errors.New("Couldn't process request - invalid request"),
+		})
 		log.Error(err.Error())
 		return
 	}
@@ -1073,11 +1205,16 @@ func (a *Api) SetConfiguration(c *gin.Context) {
 		} else if req.Logging.Level == "warn" {
 			log.SetLevel(log.WarnLevel)
 		} else {
-			c.JSON(400, Error{Msg: "Couldn't set log level - invalid log level"})
+			c.JSON(400, ServiceResult{
+				Status: false,
+				Error: errors.New("Couldn't set log level - invalid log level"),
+			})
 			return
 		}
 	}
-	c.Status(http.StatusNoContent)
+	c.JSON(200, ServiceResult{
+		Status: true,
+	})
 }
 
 // @Summary List the REST API configuration.
@@ -1085,8 +1222,8 @@ func (a *Api) SetConfiguration(c *gin.Context) {
 // @Description List the REST API configuration.
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} Configuration
-// @Failure 400 {object} Error
+// @Success 200 {object} ServiceResult{data=string}
+// @Failure 400 {object} ServiceResult{data=string}
 // @Router /v1/configuration [get]
 func (a *Api) GetConfiguration(c *gin.Context) {
 	logLevel := ""
@@ -1099,6 +1236,9 @@ func (a *Api) GetConfiguration(c *gin.Context) {
 	}
 
 	configuration := Configuration{Logging: LoggingConfiguration{Level: logLevel}}
-	c.JSON(200, configuration)
+	c.JSON(200, ServiceResult{
+		Status: true,
+		Data: configuration,
+	})
 }
 
