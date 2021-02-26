@@ -31,7 +31,7 @@ services:
 
 ```
 
-The Swagger API documentation can be found [here](https://bbernhard.github.io/signal-cli-rest-api/). If you prefer a simple text file like API documentation have a look [here](https://github.com/bbernhard/signal-cli-rest-api/blob/master/doc/EXAMPLES.md)
+The Swagger API documentation can be found [here](https://mmhk.github.io/signal-cli-rest-api/). If you prefer a simple text file like API documentation have a look [here](https://github.com/mmhk/signal-cli-rest-api/blob/master/doc/EXAMPLES.md)
 
 In case you need more functionality, please **file a ticket** or **create a PR**.
 
