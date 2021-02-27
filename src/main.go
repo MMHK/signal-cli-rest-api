@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"os"
 	"path/filepath"
-	
+	"time"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	swaggerFiles "github.com/swaggo/files"
@@ -151,14 +153,24 @@ func main() {
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerUrl))
 
-	go func() {
-		err := apiInstance.Daemon()
-		if err != nil {
-			panic("daemon is down")
-		}
-	}()
+	go StartDaemon(apiInstance)
 	
 	router.Run()
+}
+
+func StartDaemon(apiInstance *api.DBusApi) error {
+	if apiInstance != nil {
+		err := apiInstance.Daemon()
+		if err != nil {
+			log.Error("daemon is down")
+			log.Info(`restart daemon after 10s`)
+			time.AfterFunc(time.Second * 10, func() {
+				go StartDaemon(apiInstance)
+			})
+		}
+	}
+
+	return errors.New("api instance is null")
 }
 
 func getEnv(key string, defaultVal string) string {

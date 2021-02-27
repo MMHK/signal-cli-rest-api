@@ -753,6 +753,7 @@ func (a *Api) DeleteGroup(c *gin.Context) {
 // @Produce  json
 // @Success 200 {string} string	"Image"
 // @Failure 500 {object} ServiceResult{data=string}
+// @Param device_name query string true "Device Name"
 // @Router /v1/qrcodelink [get]
 func (a *Api) GetQrCodeLink(c *gin.Context) {
 	deviceName := c.Query("device_name")
@@ -773,6 +774,14 @@ func (a *Api) GetQrCodeLink(c *gin.Context) {
 		c.JSON(500, ServiceResult{
 			Status: false,
 			Error: err,
+		})
+		return
+	}
+
+	if len(tsdeviceLink) == 0 {
+		c.JSON(500, ServiceResult{
+			Status: false,
+			Error: errors.New(`can not create tsdeviceLink`),
 		})
 		return
 	}
