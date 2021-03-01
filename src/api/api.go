@@ -936,10 +936,6 @@ func (a *Api) ServeAttachment(c *gin.Context) {
 		})
 		return
 	}
-	
-	c.JSON(200, ServiceResult{
-		Status: true,
-	})
 }
 
 // @Summary Update Profile.
